@@ -1,27 +1,37 @@
-pipeline{ 
-    agent any 
-    tools{
+pipeline {
+    agent any
+    tools {
         maven 'mymaven'
     }
-    stages{
-        stage('get the code from github'){
-            steps{
+    stages {
+        stage('get the code from github') {
+            steps {
                 git 'https://github.com/josephkarthik/DevOpsCodeDemo.git'
             }
-
         }
-        stage('code review'){
-            steps{
+        stage('code review') {
+            steps {
                 sh "mvn pmd:pmd"
             }
+            post {
+                success {
+                    echo 'code review is successful'
+                    echo 'generating pmd trend report in jenkins'
+                    recordIssues sourceCodeRetention: 'LAST_BUILD', tools: [pmdParser(pattern: '**/pmd.xml')]
+                }
+                failure {
+                    echo 'code review failed'
+                    echo 'please check the pmd report in target/pmd.xml'
+                }
+            }
         }
-        stage('compile the code'){
-            steps{
+        stage('compile the code') {
+            steps {
                 sh "mvn compile"
             }
         }
-        stage('package the code'){
-            steps{
+        stage('package the code') {
+            steps {
                 sh "mvn package"
             }
         }
